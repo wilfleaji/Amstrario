@@ -15,11 +15,17 @@ RET
 
 drawSprite:
   LD B,8
-  LD HL,#C000
+  LD A,(spriteX)
+  LD L,A
+  LD H,#C0
+  LD (BaseMarioAddr),HL
   LD IX,MarioIdle
   CALL drawBloc
 
-  LD HL,#C050 ;bloc de base #C000 + 80octet
+  ;LD HL,#C050 ;bloc de base #C000 + 80octet
+  LD DE,#50
+  LD HL,(BaseMarioAddr)
+  ADD HL,DE
   LD B,8
   CALL drawBloc
   
@@ -52,10 +58,46 @@ drawPixel:
   INC IX             ;On passe a l'octet suivant dans le sprite
   RET
 
+clearScreen:
+  LD B,25
+  LD HL,#C000
+  LD (StartScreenAddr),HL
+  LD D,H
+  LD E,L
+  clearBloc:
+    PUSH BC
+    LD B,8
+    clearLine:
+      LD A,80
+      clearRow:
+        LD (HL),0
+        INC HL
+        DEC A
+        JR NZ,clearRow
+      LD H,D
+      LD L,E
+      LD DE,#0800
+      ADD HL,DE
+      LD D,H
+      LD E,L
+      DJNZ clearLine
+    LD BC,#50
+    LD HL,(StartScreenAddr)
+    ADD HL,BC
+    LD (StartScreenAddr),HL
+    LD D,H
+    LD E,L
+    POP BC
+    DJNZ clearBloc
+RET
+
 include "sprite.asm"
 spriteX: DB 0
+BaseMarioAddr: DW 0
+StartScreenAddr: DW #C000
 
 move_x_right:
+  CALL clearScreen
   LD A,(spriteX)
   INC A
   LD (spriteX),A
