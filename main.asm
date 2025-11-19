@@ -4,10 +4,11 @@ start:
 include "initGraphics.asm"
 
 gameloop:
-  CALL #BD19 ;wait VBL
   CALL #BB1B
   CP 243
   CALL Z, move_x_right
+  CP 242
+  CALL Z, move_x_left
   CALL drawSprite
 JP gameloop
 
@@ -58,37 +59,44 @@ drawPixel:
   INC IX             ;On passe a l'octet suivant dans le sprite
   RET
 
-clearScreen:
-  LD B,25
-  LD HL,#C000
-  LD (StartScreenAddr),HL
-  LD D,H
-  LD E,L
-  clearBloc:
+clearMario:
+  LD B,8
+  LD A,(spriteX)
+  LD L,A
+  LD H,#C0
+  LD (BaseMarioAddr),HL
+  CALL clearBloc
+
+  LD DE,#50
+  LD HL,(BaseMarioAddr)
+  ADD HL,DE
+  LD B,8
+  CALL clearBloc
+RET
+
+clearBloc:
     PUSH BC
-    LD B,8
-    clearLine:
-      LD A,80
-      clearRow:
-        LD (HL),0
-        INC HL
-        DEC A
-        JR NZ,clearRow
-      LD H,D
-      LD L,E
-      LD DE,#0800
-      ADD HL,DE
-      LD D,H
-      LD E,L
-      DJNZ clearLine
-    LD BC,#50
-    LD HL,(StartScreenAddr)
-    ADD HL,BC
-    LD (StartScreenAddr),HL
     LD D,H
     LD E,L
+    CALL clearLine
+    LD BC,#0800
+    LD H,D
+    LD L,E
+    ADD HL,BC
     POP BC
     DJNZ clearBloc
+    RET
+
+clearLine:
+  LD B,6
+  clearLineLoop:
+    CALL clearPixel
+    DJNZ clearLineLoop
+  RET
+
+clearPixel:
+  LD (HL),0
+  INC HL
 RET
 
 include "sprite.asm"
@@ -97,9 +105,18 @@ BaseMarioAddr: DW 0
 StartScreenAddr: DW #C000
 
 move_x_right:
-  CALL clearScreen
+  CALL clearMario
+  CALL #BD19
   LD A,(spriteX)
   INC A
+  LD (spriteX),A
+RET
+
+move_x_left:
+  CALL clearMario
+  CALL #BD19
+  LD A,(spriteX)
+  DEC A
   LD (spriteX),A
 RET
 
