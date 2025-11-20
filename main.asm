@@ -20,7 +20,11 @@ drawSprite:
   LD L,A
   LD H,#C0
   LD (BaseMarioAddr),HL
-  LD IX,MarioIdle
+  LD A,(MarioDirection)
+  CP 0
+  CALL Z, load_mario_right
+  CP 1
+  CALL Z, load_mario_left
   CALL drawBloc
 
   ;LD HL,#C050 ;bloc de base #C000 + 80octet
@@ -103,6 +107,7 @@ include "sprite.asm"
 spriteX: DB 0
 BaseMarioAddr: DW 0
 StartScreenAddr: DW #C000
+MarioDirection: DB 0 ;0 right 1 left
 
 move_x_right:
   CALL clearMario
@@ -110,6 +115,8 @@ move_x_right:
   LD A,(spriteX)
   INC A
   LD (spriteX),A
+  LD A,0
+  LD (MarioDirection),A
 RET
 
 move_x_left:
@@ -118,6 +125,16 @@ move_x_left:
   LD A,(spriteX)
   DEC A
   LD (spriteX),A
+  LD A,1
+  LD (MarioDirection),A
+RET
+
+load_mario_right:
+  LD IX,MarioIdle
+RET
+
+load_mario_left:
+  LD IX,MarioIdleLeft
 RET
 
 end:
