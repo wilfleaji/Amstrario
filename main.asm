@@ -115,7 +115,6 @@ RunCounter: DB 0
 
 move_x_right:
   CALL clearMario
-  CALL #BD19
   LD A,(spriteX)
   INC A
   LD (spriteX),A
@@ -138,7 +137,7 @@ RET
 
 load_mario_right:
   LD C,0
-  LD A,1
+  LD A,(RunCounter)
   LD HL,RunAnimation
   loop_animation:
     CP C
@@ -147,6 +146,12 @@ load_mario_right:
     INC HL
     INC C
     JP loop_animation
+RET
+
+reset_animation:
+  LD A,0
+  LD (RunCounter),A
+  CP 0
   RET
 
 end_anim:
@@ -155,6 +160,8 @@ end_anim:
   LD D,(HL)
   PUSH DE
   POP IX
+  CP 9
+  JP Z,reset_animation
   LD A,0
   CP 0 ;on refait une comparaison pour reset le flag Z, sinon dans le code apellant on va tomber dans la condition pour charger le sprite idle gauche
   RET
