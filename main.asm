@@ -25,6 +25,9 @@ drawSprite:
   CALL Z, load_mario_right
   CP 1
   CALL Z, load_mario_left
+  LD A,(spriteX)
+  LD L,A
+  LD H,#C0
   CALL drawBloc
 
   ;LD HL,#C050 ;bloc de base #C000 + 80octet
@@ -108,6 +111,7 @@ spriteX: DB 0
 BaseMarioAddr: DW 0
 StartScreenAddr: DW #C000
 MarioDirection: DB 0 ;0 right 1 left
+RunCounter: DB 0
 
 move_x_right:
   CALL clearMario
@@ -117,6 +121,9 @@ move_x_right:
   LD (spriteX),A
   LD A,0
   LD (MarioDirection),A
+  LD A,(RunCounter)
+  INC A
+  LD (RunCounter),A
 RET
 
 move_x_left:
@@ -130,8 +137,27 @@ move_x_left:
 RET
 
 load_mario_right:
-  LD IX,MarioIdle
-RET
+  LD C,0
+  LD A,1
+  LD HL,RunAnimation
+  loop_animation:
+    CP C
+    JP Z,end_anim
+    INC HL
+    INC HL
+    INC C
+    JP loop_animation
+  RET
+
+end_anim:
+  LD E,(HL)
+  INC HL
+  LD D,(HL)
+  PUSH DE
+  POP IX
+  LD A,0
+  CP 0 ;on refait une comparaison pour reset le flag Z, sinon dans le code apellant on va tomber dans la condition pour charger le sprite idle gauche
+  RET
 
 load_mario_left:
   LD IX,MarioIdleLeft
